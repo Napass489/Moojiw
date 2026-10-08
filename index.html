@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Moojiw Angel - ร้านขายและเช่ารหัสเกมสุดคิวท์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* โทนสี Kawaii Pastel Scrapbook ตามภาพเรฟเฟอเรนซ์ */
+            --pink: #FFD1DC;
+            --blue: #D4F0F0;
+            --cream: #FFF5E1;
+            --brown: #8C6A53;
+            --brown-dark: #6B4E3D;
+            --yellow: #FFF9C4;
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Mali', cursive, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #FDF9F1;
+            /* เพิ่มลายจุดน่ารักๆ ด้านนอกกรอบโทรศัพท์ */
+            background-image: 
+                radial-gradient(var(--pink) 3px, transparent 3px),
+                radial-gradient(var(--blue) 3px, transparent 3px);
+            background-position: 0 0, 30px 30px;
+            background-size: 60px 60px;
+            color: var(--brown-dark);
+            line-height: 1.6; /* เพิ่มบรรทัดให้อ่านง่าย ไม่เบียด */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* ป้องกันการเลื่อนด้านนอกกรอบโทรศัพท์ */
+        }
+
+        /* กรอบโทรศัพท์มือถือจำลอง */
+        #phone-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 430px; /* ขนาดกว้างแบบมือถือจอใหญ่ */
+            height: 100vh;
+            background-color: var(--cream);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* สำหรับจอที่กว้างกว่ามือถือ (แท็บเล็ต/คอม) ให้แสดงเป็นกรอบโทรศัพท์ชัดเจน */
+        @media (min-width: 480px) {
+            #phone-wrapper {
+                height: 90vh;
+                max-height: 896px;
+                border-radius: 45px;
+                border: 12px solid var(--brown-dark); /* ขอบโทรศัพท์สีน้ำตาล */
+                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3), inset 0 0 0 4px #000;
+            }
+            
+            /* รอยบาก (Notch) ด้านบน */
+            #phone-wrapper::after {
+                content: "";
+                position: absolute;
+                top: -1px; left: 50%;
+                transform: translateX(-50%);
+                width: 130px; height: 28px;
+                background-color: var(--brown-dark);
+                border-bottom-left-radius: 18px;
+                border-bottom-right-radius: 18px;
+                z-index: 9999;
+            }
+        }
+
+        /* Container หลักด้านในกรอบโทรศัพท์ */
+        #app-container {
+            width: 100%;
+            height: 100%;
+            background-color: var(--cream);
+            position: relative;
+            display: none;
+            padding-bottom: 95px; /* เพิ่มพื้นที่ด้านล่างไม่ให้ถูกเมนูบังเบียดกัน */
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; /* ซ่อน scrollbar */
+        }
+        #app-container::-webkit-scrollbar { display: none; }
+
+        /* หน้าคลิกเปิดประตู */
+        #entry-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--pink);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.8s, transform 0.8s;
+        }
+        .door-icon { font-size: 90px; color: var(--brown); margin-bottom: 30px; animation: bounce 2s infinite; }
+        .cute-btn {
+            background: var(--cream); color: var(--brown); border: 2px solid var(--brown);
+            padding: 15px 40px; border-radius: 30px; font-size: 18px; font-weight: 700;
+            box-shadow: 0 5px 0 var(--brown); cursor: pointer; transition: 0.1s; display: inline-flex; gap: 8px; align-items: center;
+        }
+        .cute-btn:active { transform: translateY(5px); box-shadow: 0 0 0 var(--brown); }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        /* ส่วนหัว / เสียงเพลง */
+        .top-audio-bar {
+            position: absolute; top: 30px; right: 20px; z-index: 100;
+        }
+        @media (min-width: 480px) {
+            .top-audio-bar { top: 40px; } /* ขยับลงมาหลบรอยบากในโหมดโทรศัพท์ */
+        }
+        .audio-btn {
+            background: var(--cream); color: var(--brown); border: 2px solid var(--brown);
+            width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 0 var(--brown); cursor: pointer; font-size: 18px;
+        }
+        .audio-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--brown); }
+
+        /* ================= HOME PAGE ================= */
+        .home-section-top {
+            background-color: var(--pink);
+            padding: 40px 20px 45px; /* เพิ่ม Padding ให้มีพื้นที่หายใจ */
+            position: relative;
+        }
+        .home-header-row {
+            display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;
+        }
+        .home-title-box {
+            flex: 1;
+            padding-top: 10px; /* ขยับชื่อร้านลงมานิดหน่อย */
+        }
+        .home-title {
+            font-size: 28px; font-weight: 700; color: var(--brown-dark); margin-bottom: 15px;
+        }
+        .welcome-text { font-size: 22px; font-weight: bold; margin-bottom: 10px; margin-top: 15px; text-align: center; }
+        .welcome-sub { font-size: 15px; text-align: center; margin-bottom: 25px; padding: 0 10px; }
+        
+        /* โครงสร้าง Hero Section (แนวนอน + แถบริบบิ้น + กรอบรูปหยัก) */
+        .hero-ribbon-container {
+            position: relative; margin-top: 65px; margin-bottom: 35px; /* ขยับระยะห่างบนล่างไม่ให้เบียดกัน */
+            display: flex; align-items: center; justify-content: center;
+        }
+        .hero-ribbon-bg {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 150%; left: -25%; height: 55px; /* แถบริบบิ้นหลังปุ่ม */
+            background-color: rgba(255, 255, 255, 0.4);
+            background-image: repeating-linear-gradient(90deg, rgba(140,106,83,0.05) 0px, rgba(140,106,83,0.05) 4px, transparent 4px, transparent 8px);
+            z-index: 1; border-top: 2px dashed rgba(140,106,83,0.3); border-bottom: 2px dashed rgba(140,106,83,0.3);
+        }
+        .hero-ribbon-content {
+            position: relative; z-index: 2; display: flex; align-items: center; justify-content: center;
+            gap: 15px; width: 100%; /* เพิ่ม Gap ระหว่างปุ่มกับรูปให้ไม่เบียด */
+        }
+        .hero-btn-group { display: flex; flex-direction: column; gap: 12px; } /* ปุ่มเรียงบนล่างตามฝั่ง */
+        .hero-btn {
+            background: var(--brown); color: var(--white); border: 2px solid var(--white);
+            padding: 10px 18px; border-radius: 25px; font-size: 15px; font-weight: bold;
+            box-shadow: 0 4px 0 var(--brown-dark); cursor: pointer; text-align: center; white-space: nowrap;
+        }
+        .hero-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        /* กรอบรูปดอกไม้ / รอยหยัก */
+        .profile-flower-wrapper {
+            position: relative; width: 120px; height: 120px; /* ขยายขนาดขึ้นนิดนึง */
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            margin: 0 5px; /* เพิ่มระยะซ้ายขวา */
+        }
+        .flower-petal {
+            position: absolute; width: 110px; height: 110px;
+            background: var(--brown); border-radius: 30%;
+        }
+        .petal-1 { transform: rotate(0deg); }
+        .petal-2 { transform: rotate(30deg); }
+        .petal-3 { transform: rotate(60deg); }
+        
+        .flower-inner {
+            width: 100px; height: 100px; background: var(--yellow); border-radius: 50%;
+            position: relative; z-index: 2; display: flex; align-items: center; justify-content: center;
+            overflow: hidden; border: 4px solid var(--yellow);
+        }
+        .flower-inner img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+        @media (max-width: 400px) {
+            .hero-btn { padding: 8px 12px; font-size: 13px; }
+            .hero-ribbon-content { gap: 8px; }
+            .profile-flower-wrapper { width: 100px; height: 100px; }
+            .flower-petal { width: 90px; height: 90px; }
+            .flower-inner { width: 80px; height: 80px; }
+        }
+
+        /* ส่วนกลาง 3 คอลัมน์ (โปรโมชั่น, FAQ, สะสมแต้ม) */
+        .home-section-mid {
+            background-color: var(--cream);
+            padding: 35px 20px; /* เพิ่ม padding ให้โล่งๆ */
+        }
+        .three-col-wrapper {
+            display: flex; gap: 20px; /* ห่างกันมากขึ้นไม่เบียด */
+            overflow-x: auto; 
+            scroll-snap-type: x mandatory;
+            padding-bottom: 25px; /* เว้นที่ให้เงากล่อง */
+            scrollbar-width: none; 
+        }
+        .three-col-wrapper::-webkit-scrollbar { display: none; }
+        
+        .home-col {
+            min-width: 300px; /* ขยายความกว้างกล่องให้อ่านง่าย */
+            scroll-snap-align: center;
+            display: flex; flex-direction: column; gap: 15px; /* เว้นระยะห่างหัวข้อกับกล่อง */
+        }
+        .col-header-pill {
+            background: var(--brown); color: var(--white);
+            padding: 12px 0; border-radius: 25px; text-align: center; font-weight: bold; font-size: 17px;
+            border: 2px solid var(--white); box-shadow: 0 4px 0 var(--brown-dark);
+        }
+        .col-content-box {
+            background: var(--blue); border: 2px solid var(--white);
+            border-radius: 20px; padding: 20px; min-height: 250px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        /* สไตล์ FAQ ในกล่อง */
+        .faq-box-item {
+            background: var(--white); border-radius: 15px; margin-bottom: 15px; overflow: hidden;
+            border: 1px solid var(--blue);
+        }
+        .faq-q { padding: 12px 15px; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; cursor: pointer; color: var(--brown-dark); line-height: 1.4; }
+        .faq-a { padding: 0 15px; font-size: 14px; max-height: 0; overflow: hidden; transition: 0.3s ease; background: var(--cream); color: var(--brown-dark); line-height: 1.5; }
+        .faq-a.show { padding: 15px; max-height: 400px; border-top: 1px dashed var(--brown); }
+
+        /* สไตล์โปรโมชั่นในกล่อง */
+        .promo-item {
+            background: var(--white); border-radius: 15px; padding: 15px; margin-bottom: 15px;
+            border-left: 6px solid var(--pink); box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            line-height: 1.5;
+        }
+
+        .home-section-bot {
+            background-color: var(--blue);
+            padding: 30px 20px 40px; text-align: center;
+            border-top-left-radius: 35px; border-top-right-radius: 35px;
+            margin-top: -10px; border-top: 4px solid var(--white);
+        }
+        .home-bot-line { height: 4px; background: var(--brown); margin: 15px auto 25px; width: 60%; border-radius: 5px; }
+
+        /* ================= SELL & HIRE PAGE ================= */
+        .page-header-pink {
+            background: var(--pink); padding: 20px 20px 25px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .back-circle {
+            background: var(--brown); color: var(--white); width: 40px; height: 40px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            border: 2px solid var(--white); font-size: 16px; box-shadow: 0 3px 0 var(--brown-dark);
+        }
+        .back-circle:active { transform: translateY(3px); box-shadow: none; }
+        
+        .page-header-blue-bg { background: var(--blue); min-height: 100%; padding: 25px 20px; }
+        
+        /* กล่องโปรไฟล์ด้านบน */
+        .shop-info-card {
+            background: var(--cream); border: 4px solid var(--yellow);
+            border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 18px;
+            margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .shop-info-img { width: 80px; height: 80px; border-radius: 50%; background: var(--pink); object-fit: cover; border: 4px solid var(--white); }
+        
+        /* ช่องค้นหา */
+        .search-row {
+            background: var(--white); border: 2px solid var(--white); border-radius: 30px;
+            padding: 10px 25px; display: flex; align-items: center; margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .search-row input { border: none; outline: none; flex-grow: 1; padding: 5px 10px; font-family: 'Mali'; font-size: 15px; color: var(--brown-dark); }
+        
+        /* หมวดหมู่ */
+        .cat-scroll {
+            display: flex; gap: 15px; overflow-x: auto; padding-bottom: 20px; margin-bottom: 20px; scrollbar-width: none;
+        }
+        .cat-scroll::-webkit-scrollbar { display: none; }
+        .cat-btn {
+            background: var(--cream); border: 2px solid var(--brown); color: var(--brown-dark);
+            padding: 10px 22px; border-radius: 25px; white-space: nowrap; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 0 var(--brown); font-size: 15px;
+        }
+        .cat-btn:active { transform: translateY(4px); box-shadow: none; }
+        .cat-btn.active { background: var(--brown); color: var(--white); box-shadow: 0 4px 0 var(--brown-dark); border-color: var(--brown-dark); }
+
+        /* Grid สินค้า */
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding-bottom: 20px;}
+        .prod-card {
+            background: var(--brown); border-radius: 20px; overflow: hidden; border: 3px solid var(--brown);
+            display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .prod-img-box { background: var(--pink); padding: 15px; text-align: center; position: relative; }
+        .prod-img-box img { width: 100%; aspect-ratio: 1; border-radius: 15px; object-fit: cover; background: var(--white); border: 3px solid var(--white); }
+        .prod-text-box { padding: 15px; color: var(--white); display: flex; flex-direction: column; gap: 8px; }
+        .prod-title { font-size: 15px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .prod-price { font-size: 16px; font-weight: bold; color: var(--yellow); }
+        .view-btn {
+            background: var(--yellow); color: var(--brown-dark); border: none; border-radius: 15px;
+            padding: 8px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%;
+            box-shadow: 0 3px 0 var(--brown-dark);
+        }
+        .view-btn:active { transform: translateY(3px); box-shadow: none; }
+
+        /* ================= SERVE PAGE ================= */
+        .serve-top-brown {
+            background: var(--brown); color: var(--white); padding: 35px 20px 45px;
+            position: relative; display: flex; align-items: center; justify-content: space-between;
+        }
+        /* ขอบลูกไม้สีขาวด้านล่าง */
+        .serve-top-brown::after {
+            content: ""; position: absolute; bottom: -10px; left: 0; width: 100%; height: 20px;
+            background-image: radial-gradient(circle at 10px 20px, var(--white) 12px, transparent 13px);
+            background-size: 20px 20px; background-repeat: repeat-x; z-index: 2;
+        }
+        .serve-content-pink { background: var(--pink); min-height: 100%; padding: 45px 20px 30px; }
+        
+        .serve-cat-row { display: flex; gap: 15px; overflow-x: auto; margin-bottom: 30px; padding-bottom: 10px; scrollbar-width: none; align-items: center; }
+        .serve-cat-row::-webkit-scrollbar { display: none; }
+        .serve-img-circle {
+            width: 85px; height: 85px; background: var(--yellow); border-radius: 50%; flex-shrink: 0;
+            border: 4px solid var(--white); box-shadow: 0 5px 10px rgba(0,0,0,0.1); object-fit: cover;
+        }
+        .serve-pill {
+            background: var(--brown); color: var(--white); padding: 12px 25px; border-radius: 30px;
+            white-space: nowrap; font-weight: bold; font-size: 15px; border: 2px solid var(--white); box-shadow: 0 4px 0 var(--brown-dark); cursor: pointer;
+        }
+        .serve-pill:active { transform: translateY(4px); box-shadow: none; }
+
+        .serve-item-card {
+            background: var(--brown); border-radius: 20px; overflow: hidden; margin-bottom: 25px;
+            border: 3px solid var(--white); box-shadow: 0 6px 18px rgba(0,0,0,0.08); display: flex; flex-direction: column;
+        }
+        .serve-item-img { background: var(--brown); text-align: center; padding: 18px; }
+        .serve-item-img img { width: 100%; height: 150px; object-fit: cover; border-radius: 15px; border: 3px solid var(--white); }
+        .serve-item-text { background: var(--blue); padding: 18px; border-top: 3px solid var(--white); }
+        .serve-item-title { font-weight: bold; color: var(--brown-dark); font-size: 17px; margin-bottom: 8px; }
+
+        /* ================= REVIEW PAGE ================= */
+        .review-layout {
+            display: grid; grid-template-columns: 45% 55%; min-height: 100%;
+        }
+        .review-left { background: var(--pink); padding: 25px 15px; display: flex; flex-direction: column; align-items: center; }
+        .review-right { background: var(--blue); padding: 25px 15px; border-left: 3px dashed var(--brown); }
+        
+        .contact-img-frame {
+            background: var(--white); border: 5px solid var(--brown); border-radius: 25px;
+            padding: 10px; width: 100%; aspect-ratio: 1; margin-bottom: 25px;
+            position: relative; box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+        }
+        .contact-img-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; }
+        .contact-btn-social {
+            background: var(--brown); color: var(--white); width: 100%; padding: 12px;
+            border-radius: 25px; margin-bottom: 15px; text-align: center; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; gap: 12px; border: 2px solid var(--white);
+            box-shadow: 0 4px 0 var(--brown-dark); cursor: pointer; font-size: 15px;
+        }
+        .contact-btn-social:active { transform: translateY(4px); box-shadow: none; }
+        
+        .login-box {
+            background: var(--yellow); padding: 15px; border-radius: 30px; text-align: center;
+            font-weight: bold; font-size: 16px; border: 3px solid var(--brown); margin-bottom: 25px; color: var(--brown-dark);
+            box-shadow: 0 4px 0 var(--brown);
+        }
+        .review-box {
+            background: var(--white); border: 2px solid var(--brown); border-radius: 18px;
+            padding: 15px 15px 15px 30px; margin-bottom: 20px; font-size: 14px; position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); line-height: 1.5;
+        }
+        .review-avatar {
+            position: absolute; left: -18px; top: 15px; background: var(--brown); color: var(--white);
+            width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            font-size: 14px; font-weight: bold; border: 2px solid var(--white); box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        /* ================= BOTTOM NAVIGATION ================= */
+        .bottom-nav {
+            position: absolute; /* ติดอยู่กับขอบล่างของกรอบโทรศัพท์ (#phone-wrapper) */
+            bottom: 0; left: 0;
+            width: 100%; background-color: var(--brown);
+            display: flex; justify-content: space-around; padding: 15px 10px 30px; z-index: 1000;
+        }
+        /* ขอบหยักก้อนเมฆ (ปรับความกว้าง/ความถี่ให้สวยขึ้น ห้ามเบียด) */
+        .bottom-nav::before {
+            content: ""; position: absolute; top: -23px; left: 0; right: 0; height: 25px;
+            background-image: radial-gradient(circle at 25px 25px, var(--brown) 24px, transparent 25px);
+            background-size: 50px 25px; background-repeat: repeat-x;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; color: var(--cream);
+            text-decoration: none; font-size: 13px; cursor: pointer; opacity: 0.6; font-weight: 500;
+            transition: 0.2s; padding: 5px;
+        }
+        .nav-icon { font-size: 24px; margin-bottom: 8px; }
+        .nav-item.active { opacity: 1; font-weight: 700; color: var(--white); transform: translateY(-5px); }
+
+        /* Modal / Helper */
+        .hidden { display: none !important; }
+        
+        .modal-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-content {
+            background: var(--cream); border: 4px solid var(--brown); border-radius: 30px;
+            width: 85%; max-width: 350px; padding: 30px; text-align: center; position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+        }
+        .modal-close { position: absolute; top: 15px; right: 22px; font-size: 28px; font-weight: bold; cursor: pointer; color: var(--brown); }
+        
+        /* ปุ่ม Admin ยึดติดภายในกรอบโทรศัพท์ */
+        .admin-btn {
+            position: absolute; bottom: 110px; right: 20px; z-index: 99; 
+            background: var(--pink); color: var(--brown-dark); border: 2px solid var(--white); 
+            padding: 12px 20px; border-radius: 30px; font-size: 15px; font-weight:bold; 
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15); cursor: pointer;
+        }
+        .admin-btn:active { transform: translateY(3px); box-shadow: none; }
+
+    </style>
+</head>
+<body>
+
+    <!-- กรอบโทรศัพท์จำลอง (Phone Wrapper) -->
+    <div id="phone-wrapper">
+        
+        <!-- หน้าต่างเปิดเข้าเว็บ (ซ้อนอยู่บนสุดในตอนแรก) -->
+        <div id="entry-screen" onclick="enterSite()">
+            <div class="door-icon"><i class="fa-solid fa-door-open"></i></div>
+            <div class="cute-btn">คลิกเปิดประตู ✿</div>
+        </div>
+
+        <!-- Container หลักของแอป (จะแสดงหลังจากกดเปิดประตู) -->
+        <div id="app-container">
+            
+            <!-- เสียงเพลงมุมขวาบน -->
+            <div class="top-audio-bar">
+                <div class="audio-btn" onclick="toggleAudio()"><i class="fa-solid fa-music" id="audio-icon"></i></div>
+                <audio id="bg-music" loop><source src="https://assets.mixkit.co/music/preview/mixkit-cute-avalanche-7.mp3" type="audio/mpeg"></audio>
+            </div>
+
+            <!-- ================= 1. HOME ================= -->
+            <div id="page-home" class="page-content">
+                <div class="home-section-top">
+                    <div class="home-header-row">
+                        <div class="home-title-box">
+                            <div class="home-title">MooJiw Angel</div>
+                        </div>
+                    </div>
+                    
+                    <div class="welcome-text" id="h-wel">꒰ྀི১ welcome angel ໒꒱ིྀ</div>
+                    <div class="welcome-sub" id="h-sub">ขายรหัส ปล่อยเช่ารหัส ดูรายละเอียดได้ตามเมนูด้านล่างเยย</div>
+                    
+                    <!-- Hero Layout ริบบิ้นแนวนอน พร้อมระยะห่างที่โปร่งขึ้น -->
+                    <div class="hero-ribbon-container">
+                        <div class="hero-ribbon-bg"></div>
+                        <div class="hero-ribbon-content">
+                            <!-- ปุ่มซ้าย -->
+                            <div class="hero-btn-group">
+                                <button class="hero-btn" onclick="navigate('sell')">รหัสขาย</button>
+                                <button class="hero-btn" onclick="navigate('hire')">รหัสเช่า</button>
+                            </div>
+                            
+                            <!-- รูปโปรไฟล์ตรงกลาง -->
+                            <div class="profile-flower-wrapper">
+                                <div class="flower-petal petal-1"></div>
+                                <div class="flower-petal petal-2"></div>
+                                <div class="flower-petal petal-3"></div>
+                                <div class="flower-inner">
+                                    <img id="h-img" src="https://i.pinimg.com/564x/87/42/fa/8742fa023e387cba5a8ffdbab87d2efd.jpg" alt="Profile" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23FFF9C4%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%238C6A53%22%3E%E0%B8%A3%E0%B8%B9%E0%B8%9B%3C%2Ftext%3E%3C%2Fsvg%3E'">
+                                </div>
+                            </div>
+                            
+                            <!-- ปุ่มขวา -->
+                            <div class="hero-btn-group">
+                                <button class="hero-btn" onclick="navigate('serve')">เติมเกม</button>
+                                <button class="hero-btn" onclick="navigate('review')">รีวิว</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ส่วน 3 คอลัมน์ที่เลื่อนได้ตามเรฟเฟอเรนซ์ (เพิ่มระยะห่าง) -->
+                <div class="home-section-mid">
+                    <div class="three-col-wrapper">
+                        <!-- Col 1: Promo -->
+                        <div class="home-col">
+                            <div class="col-header-pill">♡ 𝗣𝗿𝗼𝗺𝗼𝘁𝗶𝗼𝗻 𓈒 🪽</div>
+                            <div class="col-content-box" id="home-promo-list"></div>
+                        </div>
+                        <!-- Col 2: FAQ -->
+                        <div class="home-col">
+                            <div class="col-header-pill">FAQ ? ☘️👀</div>
+                            <div class="col-content-box" id="home-faq-list"></div>
+                        </div>
+                        <!-- Col 3: Points -->
+                        <div class="home-col">
+                            <div class="col-header-pill">สะสมแต้ม ✿</div>
+                            <div class="col-content-box" style="padding: 20px; font-size:15px; line-height: 1.6;">
+                                <div style="background:var(--white); padding:20px; border-radius:18px; margin-bottom:20px; text-align:center; border: 2px solid var(--pink);">
+                                    <i class="fa-solid fa-gift" style="font-size:32px; color:var(--pink); margin-bottom:12px;"></i><br>
+                                    <b style="color:var(--brown-dark); font-size: 16px;">สะสมแต้ม</b><br>ครบ 10 แต้มรับรางวัลฟรี!
+                                </div>
+                                <p style="text-align:center; color:var(--brown-dark);">หากลูกค้ากลับมาซื้อขายไอดีบ่อยครั้ง<br>ลุ้นรับรางวัลพิเศษฟรีมูลค่าหลักพัน - หลักหมื่นบาท!!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="home-section-bot">
+                    <div style="font-size:22px; font-weight:bold; color:var(--brown-dark); text-align:left; padding-left:15px;">รายละเอียด</div>
+                    <div class="home-bot-line"></div>
+                    <img src="https://i.pinimg.com/564x/a0/a2/1e/a0a21e0eb7e39fc1dc1d5d1c322b2715.jpg" style="width:100%; border-radius:25px; border:4px solid var(--white); box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                </div>
+            </div>
+
+            <!-- ================= 2. SELL ================= -->
+            <div id="page-sell" class="page-content hidden">
+                <div class="page-header-pink">
+                    <div class="back-circle" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div style="font-size:24px; font-weight:bold; color:var(--brown-dark);">moojiw sell</div>
+                    <div style="width:40px;"></div>
+                </div>
+                
+                <div class="page-header-blue-bg">
+                    <div class="shop-info-card">
+                        <img src="https://i.pinimg.com/564x/87/42/fa/8742fa023e387cba5a8ffdbab87d2efd.jpg" class="shop-info-img" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23FFF9C4%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%238C6A53%22%3E%E0%B8%A3%E0%B8%B9%E0%B8%9B%3C%2Ftext%3E%3C%2Fsvg%3E'">
+                        <div>
+                            <h3 style="color:var(--brown-dark); margin-bottom: 5px; font-size: 18px;">moojiw รหัสขาย 🐾</h3>
+                            <p style="font-size:13px; color:var(--brown); line-height: 1.4;">รายละเอียดร้านเพิ่มเติมต่างๆ สนใจสอบถามได้เลยคับ</p>
+                        </div>
+                    </div>
+
+                    <div class="search-row">
+                        <i class="fa-solid fa-magnifying-glass" style="color:var(--brown); opacity:0.6; font-size: 16px;"></i>
+                        <input type="text" id="sell-search" placeholder="ค้นหารายละเอียด..." onkeyup="renderSell()">
+                    </div>
+
+                    <div class="cat-scroll" id="sell-cat"></div>
+
+                    <div class="product-grid" id="sell-grid"></div>
+                </div>
+            </div>
+
+            <!-- ================= 3. HIRE ================= -->
+            <div id="page-hire" class="page-content hidden">
+                 <div class="page-header-pink">
+                    <div class="back-circle" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div style="font-size:24px; font-weight:bold; color:var(--brown-dark);">moojiw hire</div>
+                    <div style="width:40px;"></div>
+                </div>
+                
+                <div class="page-header-blue-bg">
+                    <div class="shop-info-card">
+                        <img src="https://i.pinimg.com/564x/87/42/fa/8742fa023e387cba5a8ffdbab87d2efd.jpg" class="shop-info-img" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23FFF9C4%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%238C6A53%22%3E%E0%B8%A3%E0%B8%B9%E0%B8%9B%3C%2Ftext%3E%3C%2Fsvg%3E'">
+                        <div>
+                            <h3 style="color:var(--brown-dark); margin-bottom: 5px; font-size: 18px;">moojiw รหัสเช่า 🐾</h3>
+                            <p style="font-size:13px; color:var(--brown); line-height: 1.4;">รายละเอียดร้านเพิ่มเติมต่างๆ สนใจสอบถามได้เลยคับ</p>
+                        </div>
+                    </div>
+
+                    <div class="search-row">
+                        <i class="fa-solid fa-magnifying-glass" style="color:var(--brown); opacity:0.6; font-size: 16px;"></i>
+                        <input type="text" id="hire-search" placeholder="ค้นหารายละเอียด..." onkeyup="renderHire()">
+                    </div>
+
+                    <div class="cat-scroll" id="hire-cat"></div>
+
+                    <div class="product-grid" id="hire-grid"></div>
+                </div>
+            </div>
+
+            <!-- ================= 4. SERVE ================= -->
+            <div id="page-serve" class="page-content hidden">
+                <div class="serve-top-brown">
+                    <div class="back-circle" onclick="navigate('home')" style="background:var(--white); color:var(--brown); border:none;"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div style="text-align: center;">
+                        <h2 style="font-size:28px; line-height: 1.2;">moojiw</h2>
+                        <p style="font-size:14px; opacity:0.9;">รวมบริการร้าน รายละเอียด~</p>
+                    </div>
+                    <img src="https://i.pinimg.com/564x/87/42/fa/8742fa023e387cba5a8ffdbab87d2efd.jpg" style="width:50px; height:50px; border-radius:50%; border:2px solid var(--white); object-fit: cover;" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23FFF9C4%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%238C6A53%22%3E%E0%B8%A3%E0%B8%B9%E0%B8%9B%3C%2Ftext%3E%3C%2Fsvg%3E'">
+                </div>
+                
+                <div class="serve-content-pink">
+                    <div class="serve-cat-row" id="serve-cat"></div>
+                    <div id="serve-list"></div>
+                </div>
+            </div>
+
+            <!-- ================= 5. REVIEW ================= -->
+            <div id="page-review" class="page-content hidden">
+                <div class="page-header-pink" style="justify-content: space-between;">
+                    <div class="back-circle" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div style="font-size:24px; font-weight:bold; color:var(--brown-dark);">รีวิว | เครดิต</div>
+                    <i class="fa-solid fa-ribbon" style="color:var(--white); font-size:30px;"></i>
+                </div>
+                
+                <div class="review-layout">
+                    <div class="review-left">
+                        <div style="font-weight:bold; margin-bottom:15px; color:var(--brown-dark); font-size:18px;">ช่องทางการติดต่อ</div>
+                        <div class="contact-img-frame">
+                            <img src="https://i.pinimg.com/564x/4a/15/4a/4a154a4f89100d07a10738d0111a684b.jpg" alt="QR">
+                        </div>
+                        <div class="contact-btn-social"><i class="fa-brands fa-facebook" style="font-size:20px;"></i> เฟส</div>
+                        <div class="contact-btn-social"><i class="fa-brands fa-instagram" style="font-size:20px;"></i> ไอจี</div>
+                        <div class="contact-btn-social"><i class="fa-brands fa-line" style="font-size:20px;"></i> ไลน์</div>
+                        <div class="contact-btn-social"><i class="fa-brands fa-discord" style="font-size:20px;"></i> ดิส</div>
+                    </div>
+                    
+                    <div class="review-right">
+                        <div class="login-box">
+                            เข้าสู่ระบบ <i class="fa-solid fa-right-to-bracket" style="margin-left:8px;"></i>
+                        </div>
+                        <div id="review-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Button -->
+            <button class="admin-btn" onclick="alert('ระบบหลังบ้าน (Mockup) - ในเวอร์ชั่นนี้เน้นโครงสร้าง UI ให้ตรงเรฟ หากต้องการเปิดระบบแก้ไข ให้เชื่อมต่อ DB ภายหลังครับ')">Admin <i class="fa-solid fa-gear"></i></button>
+
+        </div> <!-- End app-container -->
+
+        <!-- Bottom Navigation ขอบหยักก้อนเมฆ (ย้ายมาไว้ข้างนอก app-container แต่ยังอยู่ใน phone-wrapper) -->
+        <nav class="bottom-nav">
+            <a class="nav-item active" onclick="navigate('home')" id="nav-home">
+                <div class="nav-icon"><i class="fa-solid fa-house"></i></div>
+                <span>หน้าแรก</span>
+            </a>
+            <a class="nav-item" onclick="navigate('sell')" id="nav-sell">
+                <div class="nav-icon"><i class="fa-solid fa-store"></i></div>
+                <span>รหัสขาย</span>
+            </a>
+            <a class="nav-item" onclick="navigate('hire')" id="nav-hire">
+                <div class="nav-icon"><i class="fa-solid fa-gamepad"></i></div>
+                <span>รหัสเช่า</span>
+            </a>
+            <a class="nav-item" onclick="navigate('serve')" id="nav-serve">
+                <div class="nav-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <span>บริการ</span>
+            </a>
+            <a class="nav-item" onclick="navigate('review')" id="nav-review">
+                <div class="nav-icon"><i class="fa-solid fa-comment-dots"></i></div>
+                <span>ติดต่อ</span>
+            </a>
+        </nav>
+        
+        <!-- Modal Item Detail -->
+        <div class="modal-overlay" id="detail-modal">
+            <div class="modal-content">
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+                <img id="m-img" src="" style="width: 100%; border-radius: 20px; margin-bottom: 20px; border: 4px solid var(--pink); box-shadow: 0 5px 10px rgba(0,0,0,0.1);">
+                <h3 id="m-title" style="color: var(--brown-dark); margin-bottom: 10px; font-size: 20px;">Title</h3>
+                <p id="m-price" style="font-weight: bold; color: var(--brown); margin-bottom: 20px; font-size: 18px;">Price</p>
+                <div id="m-desc" style="font-size: 15px; line-height: 1.6; background: var(--blue); padding: 20px; border-radius: 20px; text-align: left; color: var(--brown-dark); border: 2px solid var(--white);">Desc</div>
+            </div>
+        </div>
+
+    </div> <!-- End phone-wrapper -->
+
+    <script>
+        // Data Mockup
+        const data = {
+            promos: [
+                { title: "꒰ა ໒꒱ โปรเปิดผ่อนครั้งแรก", desc: "➜ รับบัตรเปลี่ยนชื่อฟรี or รับ 172 เพชรฟรี<br>(เงื่อนไขเปิดบิลยอด 1000 up)" },
+                { title: "꒰ა ໒꒱ โปรเช่าครั้งแรก", desc: "➜ เพียงแค่เช่า 2 ชั่วโมงขึ้นไปแถมฟรี 1 ชั่วโมง 1 hr free .ᐟ.ᐟ" },
+                { title: "꒰ა ໒꒱ โปรชัพพอร์ตร้าน", desc: "➜ กดติดตามทุกช่องทาง รอลุ้นรับรางวัลฟรี ⋆˚✿˖°" }
+            ],
+            faqs: [
+                { q: "ทำไมเฟสดูไม่น่าเชื่อถือ ? 🍪", a: "𓈒ִׂ୨ৎ เฟสหลักปิดถาวร ผู้ติดตาม10k เครดิตมากกว่า2000 อยู่วงการมา5ปีไม่เคยโกงใคร ถ้าไม่ไว้ใจผ่านกลางได้นะคะ 🙏🏻" },
+                { q: "ผ่อนผ่านกลางได้ไหมครับ ? 🥧", a: "･･➜ หากลูกค้าไม่สบายใจผ่อนโดยตรงกับพิ้ง 🧘🏻‍♀️ สามารถผ่านกลางได้ค้าบ ลูกค้าออกค่ากลางเองน้า" },
+                { q: "ผ่อนราคาเท่าไหร่ครับ ? 🥞", a: "♡ ݂𓈒 ผ่อนบวกเพิ่ม ✅ จากราคาสด xxxx รายละเอียดสอบถามแอดมินได้เลยนะค้าบ" },
+                { q: "ผ่อนนานสุดกี่เดือนครับ ? 🧈", a: "𓂃 ส่วนใหญ่แล้วแต่ราคาไอดีค้าบ ทักสอบถามได้เลย<br>— ไอดีเล็กๆ ราคา 1000 - 4900 ผ่อนนาน 20 วัน<br>— ไอดีกลาง ราคา 5000 - 6900 ผ่อนนาน 1 เดือน" },
+                { q: "รับแลก / จอง / ผ่อนไหมครับ? 🧁", a: "𓈄 🐬รับจอง ค่าจอง 100 b = 2 day จอง 1 สัปดาห์ = 700 b" }
+            ],
+            sellCat: ["ทั้งหมด", "ผ่อนได้", "ยืนยันตัว", "โปรโมชั่น", "เริ่มต้น"],
+            sellItems: [
+                { id:1, cat:"ผ่อนได้", title:"ไอดีสายเมจ สกินแรร์", price:"฿ 1,200", img:"https://i.pinimg.com/564x/df/7e/a5/df7ea52c96c56db322d8e6a1006e8bd2.jpg", desc:"มีสกินหายาก แรงค์คอน" },
+                { id:2, cat:"เริ่มต้น", title:"ไอดีเริ่มต้นมือใหม่", price:"฿ 300", img:"https://i.pinimg.com/564x/a4/aa/c8/a4aac8aeb27255476a6f0224219a16f1.jpg", desc:"ตัวละครพื้นฐานครบ" },
+                { id:3, cat:"ยืนยันตัว", title:"ไอดีสะอาด", price:"฿ 500", img:"https://i.pinimg.com/564x/6c/42/1d/6c421d01f2dbba1df02be0429f63ab87.jpg", desc:"เปลี่ยนข้อมูลได้ทั้งหมด" }
+            ],
+            hireCat: ["ทั้งหมด", "กฎ เช่า", "ยืนยันตัว", "โปรโมชั่น", "????"],
+            hireItems: [
+                { id:1, cat:"กฎ เช่า", title:"หัวข้อ", price:"25 บ./ชม", img:"https://i.pinimg.com/564x/4e/0d/18/4e0d18228373b185671ef0841852d43d.jpg", desc:"รายละเอียด... ชั่วโมงละ 25 บาท" },
+                { id:2, cat:"กฎ เช่า", title:"หัวข้อ", price:"50 บ./ชม", img:"https://i.pinimg.com/736x/87/42/fa/8742fa023e387cba5a8ffdbab87d2efd.jpg", desc:"รายละเอียด..." }
+            ],
+            serveCat: ["เติมเกม", "แก้เมลสบัด", "ยกเลิกข่าวสาร"],
+            serveItems: [
+                { id:1, cat:"เติมเกม", title:"หัวข้อ", price:"รายละเอียด", img:"https://i.pinimg.com/564x/c2/f7/78/c2f778a483e58dcfa7d10e1189ab7285.jpg", desc:"เข้าไว ปลอดภัย" },
+                { id:2, cat:"เติมเกม", title:"หัวข้อ", price:"รายละเอียด", img:"https://i.pinimg.com/564x/c2/f7/78/c2f778a483e58dcfa7d10e1189ab7285.jpg", desc:"เข้าไว ปลอดภัย" },
+                { id:3, cat:"แก้เมลสบัด", title:"แก้เมล รายละเอียด", price:"100 บ.", img:"https://i.pinimg.com/564x/43/30/fa/4330fab27f9122557e05697621c97a53.jpg", desc:"ใช้เวลา 1-2 วัน" }
+            ],
+            reviews: [
+                { user:"^^", text:"+1 สมมาตรมาก<br><span style='font-size:16px;'>🌸 ⭐ 💖 🪐 ☁️</span>" },
+                { user:"^ ^", text:"+1 บริการดีเยี่ยมครับ" },
+                { user:"^", text:"+1 แอดมินตอบไวมาก" }
+            ]
+        };
+
+        let activeCat = { sell: "ทั้งหมด", hire: "ทั้งหมด", serve: "เติมเกม" };
+        let isAudioPlaying = false;
+        const bgMusic = document.getElementById('bg-music');
+
+        function enterSite() {
+            document.getElementById('entry-screen').style.opacity = '0';
+            document.getElementById('entry-screen').style.pointerEvents = 'none';
+            setTimeout(() => {
+                document.getElementById('entry-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                toggleAudio(true);
+                initRender();
+            }, 500);
+        }
+
+        function toggleAudio(force = false) {
+            const icon = document.getElementById('audio-icon');
+            if (force || !isAudioPlaying) {
+                bgMusic.play().catch(()=>{});
+                isAudioPlaying = true;
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                bgMusic.pause();
+                isAudioPlaying = false;
+                icon.className = 'fa-solid fa-volume-xmark';
+            }
+        }
+
+        function navigate(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.remove('hidden');
+            document.getElementById('nav-' + pageId).classList.add('active');
+            
+            // Scroll to top of the app container, not window
+            document.getElementById('app-container').scrollTop = 0;
+        }
+
+        function initRender() {
+            // Home
+            document.getElementById('home-promo-list').innerHTML = data.promos.map(p => `<div class="promo-item"><b style="color:var(--brown-dark);">${p.title}</b><br><span style="font-size:14px; color:#555; display:block; margin-top:5px;">${p.desc}</span></div>`).join('');
+            
+            document.getElementById('home-faq-list').innerHTML = data.faqs.map((f, i) => `
+                <div class="faq-box-item">
+                    <div class="faq-q" onclick="toggleFaq(${i})">${f.q} <i class="fa-solid fa-plus" style="color:var(--pink);"></i></div>
+                    <div class="faq-a" id="faq-a-${i}">${f.a}</div>
+                </div>`).join('');
+                
+            // Review
+            document.getElementById('review-list').innerHTML = data.reviews.map(r => `
+                <div class="review-box">
+                    <div class="review-avatar">${r.user}</div>
+                    <div style="color:var(--brown-dark);">${r.text}</div>
+                </div>`).join('');
+
+            renderCat('sell'); renderSell();
+            renderCat('hire'); renderHire();
+            renderCat('serve'); renderServe();
+        }
+
+        function toggleFaq(i) {
+            const el = document.getElementById('faq-a-'+i);
+            el.classList.toggle('show');
+        }
+
+        function renderCat(type) {
+            const container = document.getElementById(type+'-cat');
+            container.innerHTML = type === 'serve' ? `<img src="https://i.pinimg.com/564x/87/42/fa/8742fa023e387cba5a8ffdbab87d2efd.jpg" class="serve-img-circle" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23FFF9C4%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%238C6A53%22%3E%E0%B8%A3%E0%B8%B9%E0%B8%9B%3C%2Ftext%3E%3C%2Fsvg%3E'">` : '';
+            
+            data[type+'Cat'].forEach(c => {
+                const isActive = activeCat[type] === c ? 'active' : '';
+                const cssClass = type === 'serve' ? 'serve-pill' : 'cat-btn';
+                const extraStyle = (type === 'serve' && isActive) ? 'background:var(--white); color:var(--brown);' : '';
+                container.innerHTML += `<div class="${cssClass} ${isActive}" style="${extraStyle}" onclick="setCat('${type}', '${c}')">${c}</div>`;
+            });
+        }
+        
+        function setCat(type, cat) { activeCat[type] = cat; renderCat(type); window['render'+type.charAt(0).toUpperCase()+type.slice(1)](); }
+
+        function renderSell() { renderGrid('sell', 'sell-grid', 'sell-search'); }
+        function renderHire() { renderGrid('hire', 'hire-grid', 'hire-search'); }
+        
+        function renderGrid(type, containerId, searchId) {
+            const term = document.getElementById(searchId).value.toLowerCase();
+            const filtered = data[type+'Items'].filter(i => (activeCat[type] === 'ทั้งหมด' || i.cat === activeCat[type]) && i.title.toLowerCase().includes(term));
+            
+            document.getElementById(containerId).innerHTML = filtered.map(i => `
+                <div class="prod-card">
+                    <div class="prod-img-box"><img src="${i.img}"></div>
+                    <div class="prod-text-box">
+                        <div class="prod-title">${i.title}</div>
+                        <div style="font-size:13px; margin-bottom:4px; opacity:0.8;">รายละเอียด ~</div>
+                        <div class="prod-price"><i class="fa-solid fa-tag" style="font-size:11px; margin-right:5px;"></i>${i.price}</div>
+                        <div style="display:flex; gap:8px; margin-top:8px;">
+                            <button class="view-btn" onclick='openModal(${JSON.stringify(i)})'>ดูรายละเอียด</button>
+                            <button class="view-btn" style="width:45px; background:var(--white); color:var(--brown);"><i class="fa-regular fa-image"></i></button>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function renderServe() {
+            const filtered = data.serveItems.filter(i => i.cat === activeCat.serve);
+            
+            let html = `<h3 style="color:var(--brown-dark); margin-bottom:20px; padding-left:10px; border-left:5px solid var(--brown); font-size:18px;">${activeCat.serve} ~</h3>`;
+            
+            if (activeCat.serve === 'เติมเกม') {
+                html += `<div class="product-grid">`;
+                html += filtered.map(i => `
+                    <div class="serve-item-card" onclick='openModal(${JSON.stringify(i)})' style="cursor:pointer;">
+                        <div class="serve-item-img"><img src="${i.img}"></div>
+                        <div class="serve-item-text">
+                            <div class="serve-item-title">${i.title}</div>
+                            <div style="color:var(--brown); font-size:14px; font-weight:bold;">${i.price}</div>
+                        </div>
+                    </div>`).join('');
+                html += `</div>`;
+            } else {
+                html += `<div>`;
+                html += filtered.map(i => `
+                    <div class="serve-item-card" onclick='openModal(${JSON.stringify(i)})' style="cursor:pointer; display:block;">
+                        <div class="serve-item-img" style="padding:15px;"><img src="${i.img}" style="height:140px; width:100%;"></div>
+                        <div class="serve-item-text">
+                            <div class="serve-item-title">${i.title}</div>
+                        </div>
+                    </div>`).join('');
+                html += `</div>`;
+            }
+            
+            document.getElementById('serve-list').innerHTML = html;
+        }
+
+        function openModal(item) {
+            document.getElementById('m-title').innerText = item.title;
+            document.getElementById('m-price').innerText = item.price;
+            document.getElementById('m-desc').innerHTML = item.desc;
+            document.getElementById('m-img').src = item.img;
+            document.getElementById('detail-modal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('detail-modal').style.display = 'none'; }
+    </script>
+</body>
+</html>
